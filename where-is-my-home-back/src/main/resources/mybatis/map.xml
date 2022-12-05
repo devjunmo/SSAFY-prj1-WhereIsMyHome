@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssafy.home.map.mapper.MapMapper">
+
+    <select id="getSido" resultType="DongCodeDto">
+        select distinct sidoName from dongcode;
+    </select>
+
+    <select id="getGugun" resultType="DongCodeDto">
+        select distinct gugunName
+        from dongcode
+        where sidoName = #{sidoName} and gugunName is not null
+        order by binary(gugunName);
+    </select>
+
+    <select id="getDong" resultType="DongCodeDto">
+        select dongCode, dongName
+        from dongcode
+        where sidoName = #{sidoName} and gugunName = #{gugunName} and dongName is not null
+        order by binary(dongName);
+    </select>
+
+    <select id="getAptList" resultType="HouseInfoDto">
+        select h.aptCode, h.apartmentName, h.roadName, h.roadNameBonbun, h.roadNameBubun, h.buildYear, h.lat, h.lng, f.id
+        from houseinfo h
+        left join favorite_area f
+        on h.aptCode = f.aptcode
+        <choose>
+            <when test="userId == null">
+                and f.user_id = null
+            </when>
+            <otherwise>
+                and f.user_id = #{userId}
+            </otherwise>
+        </choose>
+        where h.dongCode = #{dongCode};
+    </select>
+
+    <select id="getAptDeal" resultType="HouseDealDto">
+        select aptCode, area, dealAmount, dealDay, dealMonth, dealYear, floor, no
+        from housedeal
+        where aptCode = #{aptCode}
+        <if test="cur > 0">
+            AND no <![CDATA[<=]]> #{cur}
+        </if>
+        order by dealYear desc, dealMonth desc, dealDay desc
+        limit 11
+        ;
+    </select>
+
+    <select id="checkExistAptCode" resultType="boolean">
+        select count(#{aptCode}) > 0
+        from houseinfo
+        where aptCode = #{aptCode};
+    </select>
+
+    <select id="getFavoriteById" resultType="FavoriteDto">
+        select *
+        from favorite_area
+        where id = #{favoriteId};
+    </select>
+
+    <select id="checkExistFavoriteByUserIdAndAptCode" resultType="boolean" parameterType="FavoriteDto">
+        select count(id) > 0
+        from favorite_area
+        where user_id = #{userId} and aptCode = #{aptCode};
+    </select>
+
+    <insert id="addFavoriteApt" parameterType="FavoriteDto" useGeneratedKeys="true" keyProperty="id">
+        insert into favorite_area(user_id, aptCode)
+        values(#{userId}, #{aptCode});
+    </insert>
+
+    <delete id="removeFavoriteApt">
+        delete from favorite_area
+        where id = #{favoriteId};
+    </delete>
+
+    <select id="getAllFavoriteArea" resultType="HouseInfoDto">
+        select h.aptCode, h.apartmentName, h.roadName, h.roadNameBonbun, h.roadNameBubun, h.buildYear, h.lat, h.lng, f.id
+        from favorite_area f left join houseinfo h on f.aptcode = h.aptCode
+        where f.user_id = #{userId};
+    </select>
+</mapper>

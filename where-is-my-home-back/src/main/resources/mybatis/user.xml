@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssafy.home.user.mapper.UserMapper">
+
+<!--    <delete id="deleteUser" parameterType="String">-->
+<!--        DELETE FROM user WHERE id=#{id}-->
+<!--    </delete>-->
+
+<!--    <update id="modifyUser" parameterType="UserDto">-->
+<!--        UPDATE user SET id = #{id}, pw = #{pw},name=#{name} WHERE id = #{id};-->
+<!--    </update>-->
+
+    <select id="getUserByEmail" resultType="UserDto">
+        select * from user where email = #{email};
+    </select>
+
+    <select id="getUserById" resultType="UserDto">
+        select * from user where id = #{id};
+    </select>
+
+    <insert id="signUp" parameterType="UserDto">
+        insert into user(email, password, nickname, role)
+        values(#{email}, #{password}, #{nickname}, 'NONE');
+    </insert>
+    
+    <insert id="saveUserRefreshToken" parameterType="UserRefreshTokenDto">
+        insert into user_refresh_token(user_id, refresh_token)
+        values(#{userId}, #{refreshToken});
+    </insert>
+
+    <select id="getUserRefreshToken" resultType="String">
+        select refresh_token from user_refresh_token where user_id = #{userId};
+    </select>
+
+    <delete id="deleteUserRefreshToken">
+        delete from user_refresh_token where user_id = #{userId};
+    </delete>
+
+    <update id="deleteUser">
+        update user
+        set is_deleted = true, email = 'xxx'
+        where id = #{userId};
+    </update>
+
+    <insert id="setAuthCode" parameterType="UserEmailAuthDto">
+        insert into user_email_auth(user_id, verify_key, type )
+        values(#{userId}, #{verifyKey}, #{type});
+    </insert>
+
+    <select id="getAuthCode" resultType="UserEmailAuthDto">
+        select * from user_email_auth
+        where user_id = #{userId} and type = #{type} and is_expired = false;
+    </select>
+
+    <update id="expireAuthCode">
+        update user_email_auth
+        set is_expired = true
+        where id = #{id};
+    </update>
+
+    <update id="verifyUser">
+        update user
+        set is_verified = true
+        where id = #{userId};
+    </update>
+
+    <select id="checkValidEmail" resultType="boolean">
+        select count(email) from user where email = #{email};
+    </select>
+
+    <update id="updatePassword" parameterType="UserDto">
+        update user
+        set password = #{password}
+        where id = #{id}
+    </update>
+</mapper>

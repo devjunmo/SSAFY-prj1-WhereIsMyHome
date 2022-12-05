@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssafy.home.board.mapper.BoardMapper">
+
+	<insert id="writeArticle" parameterType="boardDto">
+		insert into post (user_id, title, content, hit, type)
+		values (#{userId}, #{title}, #{content}, 0, 'NONE')
+	</insert>
+
+	<select id="getArticleCount" resultType="int">
+		select count(*)
+		from post
+		where is_deleted = 0
+	</select>
+
+	<select id="listArticle" parameterType="map" resultType="BoardListDto">
+		select post.id, post.user_id, post.title, post.content, post.hit, post.type, post.created_at, post.updated_at, user.nickname
+		from post
+		inner join user
+		on post.user_id = user.id
+		where post.is_deleted = 0
+		order by id desc
+		limit #{start}, #{spp};
+	</select>
+
+	<select id="getArticle" parameterType="int" resultType="BoardViewDto">
+		select p.id, p.user_id, p.title, p.content, p.hit, p.type, p.created_at, p.updated_at, u.nickname
+		from post p
+		left join user u
+		on p.user_id = u.id
+		where p.id = #{id} and p.is_deleted = 0
+	</select>
+
+	<update id="updateHit" parameterType="int">
+		update post
+		set hit = hit + 1
+		where id = #{id}
+	</update>
+
+	<update id="modifyArticle" parameterType="boardDto">
+		update post
+		set title = #{title}, content = #{content}
+		where id = #{id} and is_deleted = 0
+	</update>
+
+
+	<delete id="deleteArticle" parameterType="int">
+		update post
+		set is_deleted = 1
+		where id = #{id}
+	</delete>
+
+
+	<select id="getWriterIdByBoardId" parameterType="int" resultType="int">
+		select user_id
+		from post
+		where id=#{id} and is_deleted = 0
+	</select>
+
+	<select id="getArticleById" parameterType="int" resultType="BoardDto">
+		select *
+		from post
+		where id=#{id} and is_deleted = 0
+	</select>
+
+
+	<insert id="writeComment" parameterType="CommentDto">
+		insert into comment (post_id, user_id, content, is_deleted)
+		values (#{postId}, #{userId}, #{content}, 0)
+	</insert>
+
+
+	<select id="getComments" parameterType="int" resultType="CommentDto">
+		select c.id, c.post_id, c.user_id, c.content, c.updated_at, c.is_deleted, u.nickname
+		from comment c
+		inner join user u
+		on c.user_id = u.id
+		where c.post_id = #{postId}
+		order by c.id desc;
+	</select>
+
+
+	<select id="getCommentById" parameterType="int" resultType="CommentDto">
+		select *
+		from comment
+		where id=#{commentId} and is_deleted = 0
+	</select>
+
+
+	<update id="softDeleteComment" parameterType="int">
+		update comment
+		set is_deleted = 1
+		where id = #{commentId}
+	</update>
+
+
+	<update id="modifyComment" parameterType="CommentDto">
+		update comment
+		set content = #{content}
+		where id = #{id} and is_deleted = 0
+	</update>
+
+
+	<select id="getPostHit" parameterType="Map" resultType="PostHitDto">
+		select *
+		from post_hit
+		where user_id=#{userId} and post_id=#{postId}
+	</select>
+
+
+	<insert id="setPostHit" parameterType="Map">
+		insert into post_hit (post_id, user_id)
+		values (#{postId}, #{userId})
+	</insert>
+
+</mapper>
